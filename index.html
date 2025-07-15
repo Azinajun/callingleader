@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panggil Leader System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background-color: #0a0a0a;
+      color: #00ffff;
+      text-align: center;
+      padding: 20px;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    h1 {
+      color: #ff00ff;
+      text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;
+      animation: glowPulse 2s infinite;
+      font-size: 2rem;
+      margin-bottom: 30px;
+    }
+
+    @keyframes glowPulse {
+      0%, 100% {
+        text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;
+      }
+      50% {
+        text-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff;
+      }
+    }
+
+    select, button, input {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 16px;
+      padding: 12px 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 5px;
+      background-color: #1a1a1a;
+      color: #00ffff;
+      box-shadow: 0 0 10px #00ffff;
+      transition: all 0.3s ease;
+      width: 90%;
+      max-width: 300px;
+    }
+
+    button:hover {
+      background-color: #00ffff;
+      color: #000;
+      box-shadow: 0 0 20px #00ffff;
+      transform: scale(1.05);
+    }
+
+    button:active {
+      transform: scale(0.95);
+    }
+
+    .alert {
+      background-color: #1a1a1a;
+      border: 1px solid #ff0055;
+      color: #ff0055;
+      padding: 15px;
+      margin: 20px auto;
+      border-radius: 10px;
+      max-width: 600px;
+      box-shadow: 0 0 20px #ff0055;
+      animation: alertFlash 1.5s infinite;
+    }
+
+    @keyframes alertFlash {
+      0%, 100% {
+        box-shadow: 0 0 10px #ff0055;
+      }
+      50% {
+        box-shadow: 0 0 30px #ff0055, 0 0 10px #ff0055 inset;
+      }
+    }
+
+    #modeSelect, #caller, #leader, #pinEntry {
+      margin-top: 20px;
+      animation: fadeIn 1s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    audio {
+      display: none;
+    }
+
+    .ok-btn {
+      margin-top: 10px;
+      background-color: #ff0055;
+      color: #fff;
+      box-shadow: 0 0 10px #ff0055;
+      transition: 0.2s ease;
+    }
+
+    .ok-btn:hover {
+      background-color: #fff;
+      color: #ff0055;
+      box-shadow: 0 0 20px #fff;
+    }
+
+    #caller, #leader, #pinEntry {
+      display: none;
+    }
+
+    #status {
+      margin-top: 10px;
+      font-size: 16px;
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    /* Animasi baru */
+    .pulse {
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .shake {
+      animation: shake 0.5s;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-5px); }
+      40%, 80% { transform: translateX(5px); }
+    }
+
+    /* Tampilan tablet */
+    @media (min-width: 768px) {
+      h1 {
+        font-size: 2.5rem;
+      }
+
+      select, button, input {
+        font-size: 18px;
+        padding: 15px 25px;
+      }
+
+      .alert {
+        padding: 20px;
+        font-size: 1.1rem;
+      }
+
+      #leader {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+    }
+
+    /* PIN entry styling */
+    #pinEntry {
+      background-color: rgba(0,0,0,0.8);
+      padding: 30px;
+      border-radius: 15px;
+      max-width: 400px;
+      margin: 20px auto;
+      border: 1px solid #00ffff;
+      box-shadow: 0 0 20px #00ffff;
+    }
+
+    #pinDisplay {
+      letter-spacing: 5px;
+      font-size: 1.5rem;
+      margin: 15px 0;
+      min-height: 40px;
+    }
+
+    .pin-btn {
+      width: 60px;
+      height: 60px;
+      margin: 5px;
+      font-size: 1.2rem;
+      border-radius: 50%;
+    }
+
+    .pin-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-width: 250px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔊 PANGGIL LEADER SYSTEM 🔊</h1>
+
+  <div id="modeSelect">
+    <p>Pilih Mode:</p>
+    <button onclick="selectMode('caller')" class="pulse">POS</button>
+    <button onclick="showPinEntry()" class="pulse">LEADER</button>
+  </div>
+
+  <div id="pinEntry">
+    <h2>MASUKKAN PIN</h2>
+    <div id="pinDisplay"></div>
+    <div class="pin-container">
+      <button class="pin-btn" onclick="addToPin('1')">1</button>
+      <button class="pin-btn" onclick="addToPin('2')">2</button>
+      <button class="pin-btn" onclick="addToPin('3')">3</button>
+      <button class="pin-btn" onclick="addToPin('4')">4</button>
+      <button class="pin-btn" onclick="addToPin('5')">5</button>
+      <button class="pin-btn" onclick="addToPin('6')">6</button>
+      <button class="pin-btn" onclick="addToPin('7')">7</button>
+      <button class="pin-btn" onclick="addToPin('8')">8</button>
+      <button class="pin-btn" onclick="addToPin('9')">9</button>
+      <button class="pin-btn" onclick="clearPin()">C</button>
+      <button class="pin-btn" onclick="addToPin('0')">0</button>
+      <button class="pin-btn" onclick="submitPin()" style="background-color:#00aa00;">OK</button>
+    </div>
+    <p id="pinError" style="color:red; margin-top:10px;"></p>
+  </div>
+
+  <div id="caller">
+    <p>Pilih Pos:</p>
+    <select id="posSelect">
+      <option value="">-- Pilih Pos --</option>
+      <option>APPEARANCE 1</option>
+      <option>APPEARANCE 2</option>
+      <option>APPEARANCE 3</option>
+      <option>FUNCTION 1</option>
+      <option>FUNCTION 2</option>
+      <option>FUNCTION 3</option>
+    </select>
+    <br><br>
+    <button onclick="callLeader()" class="pulse">Panggil Leader</button>
+    <p id="status"></p>
+  </div>
+
+  <div id="leader">
+    <h2>📟 DASHBOARD LEADER</h2>
+    <div id="calls"></div>
+    <button onclick="resetCalls()" style="background-color:#990000; color:white; box-shadow: 0 0 10px red;" class="pulse">RESET SEMUA</button>
+    <audio id="alarm" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto" loop></audio>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCS4AI2Fs-n_nXjUthljPB2dVMrtfxMp5w",
+      authDomain: "panggilleader.firebaseapp.com",
+      databaseURL: "https://panggilleader-default-rtdb.firebaseio.com",
+      projectId: "panggilleader",
+      storageBucket: "panggilleader.firebasestorage.app",
+      messagingSenderId: "809469343969",
+      appId: "1:809469343969:web:3396896584718dfb6f5fa0"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // PIN configuration (ubah PIN ini sesuai kebutuhan)
+    const CORRECT_PIN = "1234";
+    let currentPin = "";
+
+    function selectMode(mode) {
+      document.getElementById("modeSelect").style.display = "none";
+      if (mode === 'caller') {
+        document.getElementById("caller").style.display = "block";
+        document.getElementById("caller").classList.add("pulse");
+        setTimeout(() => {
+          document.getElementById("caller").classList.remove("pulse");
+        }, 2000);
+      } else {
+        document.getElementById("leader").style.display = "block";
+        document.getElementById("leader").classList.add("pulse");
+        setTimeout(() => {
+          document.getElementById("leader").classList.remove("pulse");
+        }, 2000);
+        listenForCalls();
+      }
+    }
+
+    function showPinEntry() {
+      document.getElementById("modeSelect").style.display = "none";
+      document.getElementById("pinEntry").style.display = "block";
+      document.getElementById("pinEntry").classList.add("pulse");
+    }
+
+    function addToPin(num) {
+      if (currentPin.length < 4) {
+        currentPin += num;
+        updatePinDisplay();
+      }
+    }
+
+    function clearPin() {
+      currentPin = "";
+      updatePinDisplay();
+      document.getElementById("pinError").textContent = "";
+    }
+
+    function updatePinDisplay() {
+      const pinDisplay = document.getElementById("pinDisplay");
+      pinDisplay.textContent = "*".repeat(currentPin.length);
+    }
+
+    function submitPin() {
+      if (currentPin === CORRECT_PIN) {
+        document.getElementById("pinEntry").style.display = "none";
+        selectMode('leader');
+      } else {
+        document.getElementById("pinError").textContent = "PIN salah! Coba lagi.";
+        document.getElementById("pinEntry").classList.add("shake");
+        setTimeout(() => {
+          document.getElementById("pinEntry").classList.remove("shake");
+        }, 500);
+        currentPin = "";
+        updatePinDisplay();
+      }
+    }
+
+    function callLeader() {
+      const pos = document.getElementById("posSelect").value;
+      if (!pos) {
+        const select = document.getElementById("posSelect");
+        select.style.border = "2px solid red";
+        select.classList.add("shake");
+        setTimeout(() => {
+          select.style.border = "none";
+          select.classList.remove("shake");
+        }, 500);
+        return;
+      }
+
+      const timestamp = Date.now();
+      db.ref("calls/" + timestamp).set({
+        pos: pos,
+        time: new Date().toLocaleTimeString()
+      }).then(() => {
+        const status = document.getElementById("status");
+        status.innerText = `✅ Panggilan dikirim dari ${pos}`;
+        status.style.color = "lime";
+        status.classList.add("pulse");
+        setTimeout(() => {
+          status.innerText = "";
+          status.classList.remove("pulse");
+        }, 3000);
+      });
+    }
+
+    function listenForCalls() {
+      const alarm = document.getElementById("alarm");
+      const callsDiv = document.getElementById("calls");
+
+      db.ref("calls").on("child_added", (snapshot) => {
+        const data = snapshot.val();
+        const key = snapshot.key;
+
+        const alertDiv = document.createElement("div");
+        alertDiv.classList.add("alert", "pulse");
+        alertDiv.innerHTML = `
+          🔔 <strong>${data.pos}</strong> membutuhkan LEADER! [${data.time}]<br><br>
+          <button class="ok-btn" onclick="acknowledgeCall('${key}', this)">OK</button>
+        `;
+        callsDiv.prepend(alertDiv);
+        
+        // Mainkan alarm dengan mencoba-catch untuk menghindari error di beberapa browser
+        alarm.play().catch(e => console.log("Audio error:", e));
+        
+        // Hentikan animasi pulse setelah beberapa detik
+        setTimeout(() => {
+          alertDiv.classList.remove("pulse");
+        }, 3000);
+      });
+    }
+
+    function acknowledgeCall(key, button) {
+      db.ref("calls/" + key).remove().then(() => {
+        const div = button.closest(".alert");
+        if (div) {
+          div.classList.add("fade-out");
+          setTimeout(() => div.remove(), 500);
+        }
+
+        if (document.querySelectorAll(".alert").length === 0) {
+          const alarm = document.getElementById("alarm");
+          alarm.pause();
+          alarm.currentTime = 0;
+        }
+      });
+    }
+
+    function resetCalls() {
+      if (confirm("Yakin ingin reset semua panggilan?")) {
+        db.ref("calls").remove().then(() => {
+          document.getElementById("calls").innerHTML = "";
+          const alarm = document.getElementById("alarm");
+          alarm.pause();
+          alarm.currentTime = 0;
+        });
+      }
+    }
+
+    // Animasi fade-out untuk CSS
+    const style = document.createElement('style');
+    style.textContent = `
+      .fade-out {
+        animation: fadeOut 0.5s ease-out;
+      }
+      @keyframes fadeOut {
+        from { opacity: 1; transform: scale(1); }
+        to { opacity: 0; transform: scale(0.9); }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>
