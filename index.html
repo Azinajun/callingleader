@@ -277,7 +277,7 @@
     const db = firebase.database();
 
     // PIN configuration (ubah PIN ini sesuai kebutuhan)
-    const CORRECT_PIN = "1234";
+    const CORRECT_PIN = "666";
     let currentPin = "";
 
     function selectMode(mode) {
@@ -365,41 +365,51 @@
         }, 3000);
       });
     }
+ let activeAlarm = false;
+  function listenForCalls() {
+    const alarm = document.getElementById("alarm");
+    const callsDiv = document.getElementById("calls");
 
-    function listenForCalls() {
-      const alarm = document.getElementById("alarm");
-      const callsDiv = document.getElementById("calls");
+    db.ref("calls").on("child_added", (snapshot) => {
+      const data = snapshot.val();
+      const key = snapshot.key;
 
-      db.ref("calls").on("child_added", (snapshot) => {
-        const data = snapshot.val();
-        const key = snapshot.key;
-
-        const alertDiv = document.createElement("div");
-        alertDiv.classList.add("alert", "pulse");
-        alertDiv.innerHTML = `
-          🔔 <strong>${data.pos}</strong> membutuhkan LEADER! [${data.time}]<br><br>
-          <button class="ok-btn" onclick="acknowledgeCall('${key}', this)">OK</button>
-        `;
-        callsDiv.prepend(alertDiv);
-        
-        // Mainkan alarm dengan mencoba-catch untuk menghindari error di beberapa browser
+      const alertDiv = document.createElement("div");
+      alertDiv.classList.add("alert", "pulse");
+      alertDiv.innerHTML = `
+        🔔 <strong>${data.pos}</strong> membutuhkan LEADER! [${data.time}]<br><br>
+        <button class="ok-btn" onclick="acknowledgeCall('${key}', this)">OK</button>
+      `;
+      callsDiv.prepend(alertDiv);
+      
+      // Mainkan alarm hanya jika belum aktif
+      if (!activeAlarm) {
         alarm.play().catch(e => console.log("Audio error:", e));
-        
-        // Hentikan animasi pulse setelah beberapa detik
-        setTimeout(() => {
-          alertDiv.classList.remove("pulse");
-        }, 3000);
-      });
-    }
+        activeAlarm = true;
+      }
+      
+      setTimeout(() => {
+        alertDiv.classList.remove("pulse");
+      }, 3000);
+    });
 
-    function acknowledgeCall(key, button) {
-      db.ref("calls/" + key).remove().then(() => {
-        const div = button.closest(".alert");
-        if (div) {
-          div.classList.add("fade-out");
-          setTimeout(() => div.remove(), 500);
-        }
+    // Tambahkan listener untuk memeriksa ketika tidak ada panggilan
+    db.ref("calls").on("value", (snapshot) => {
+      if (!snapshot.exists() && activeAlarm) {
+        alarm.pause();
+        alarm.currentTime = 0;
+        activeAlarm = false;
+      }
+    });
+  }
 
+  function acknowledgeCall(key, button) {
+    db.ref("calls/" + key).remove().then(() => {
+      const div = button.closest(".alert");
+      if (div) {
+        div.classList.add("fade-out");
+        setTimeout(() => div.remove(), 500);
+      }
         if (document.querySelectorAll(".alert").length === 0) {
           const alarm = document.getElementById("alarm");
           alarm.pause();
